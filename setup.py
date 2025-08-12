@@ -5,8 +5,8 @@ from setuptools import find_packages, setup
 from typing import List
 
 # Package meta-data.
-REPO_NAME = "gems_prediction-ml-project"
-DESCRIPTION = "An AI/ML project for Gems Price Prediction purpose"
+REPO_NAME = "flight_price_prediction-ml-project"
+DESCRIPTION = "An AI/ML project for Flight Price Price Prediction system"
 URL = "https://github.com/candobettercode/gems_prediction-ml-project.git"
 SRC_REPO = "src" # Name of local package
 EMAIL = "siddhesh1199@gmail.com"
@@ -67,5 +67,5 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
-    keywords="machine learning, deep learning, AI, data science",
+    keywords="machine learning, deep learning, AI, data science, EDA",
 )
