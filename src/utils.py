@@ -11,6 +11,8 @@ from sklearn.metrics import r2_score
 from sklearn.model_selection import GridSearchCV
 
 from src.exception import MyException
+from src.logger import logging
+
 
 def save_object(file_path, obj):
     try:
@@ -24,21 +26,26 @@ def save_object(file_path, obj):
     except Exception as e:
         raise MyException(e, sys)
     
-def evaluate_models(X_train, y_train,X_test,y_test,models):
+def evaluate_models(X_train, y_train,X_test,y_test,models,param):
     try:
         report = {}
 
         for i in range(len(list(models))):
+            model_name = list(models.keys())[i]
             model = list(models.values())[i]
             #para=param[list(models.keys())[i]]
+            para = param.get(list(models.keys())[i], {})
 
-            #gs = GridSearchCV(model,para,cv=3)
-            #gs.fit(X_train,y_train)
 
-            #model.set_params(**gs.best_params_)
-            model.fit(X_train,y_train)
+            logging.info(f"Starting GridSearch for: {model_name}")
 
-            #model.fit(X_train, y_train)  # Train model
+            gs = GridSearchCV(model,para,cv=3)
+            gs.fit(X_train,y_train)
+
+            logging.info(f"Best params for {model_name}: {gs.best_params_}")
+
+            model.set_params(**gs.best_params_)
+            model.fit(X_train, y_train)  # Train model
 
             y_train_pred = model.predict(X_train)
 
@@ -48,11 +55,14 @@ def evaluate_models(X_train, y_train,X_test,y_test,models):
 
             test_model_score = r2_score(y_test, y_test_pred)
 
+            logging.info(f"{model_name} - Train R2: {train_model_score:.4f}, Test R2: {test_model_score:.4f}")
+
             report[list(models.keys())[i]] = test_model_score
 
         return report
 
     except Exception as e:
+        logging.error(f"Error while evaluating models: {str(e)}")
         raise MyException(e, sys)
     
 def load_object(file_path):
