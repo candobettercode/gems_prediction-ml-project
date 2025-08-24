@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flight Price Prediction</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .glow-btn:hover {
+      box-shadow: 0 0 20px rgba(59,130,246,0.7);
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-900 via-purple-800 to-black min-h-screen flex items-center justify-center p-4">
+
+  <div class="glass rounded-2xl shadow-lg p-8 w-full max-w-3xl text-white">
+    <!-- Header with animated plane -->
+    <div class="flex items-center justify-center space-x-3 mb-6">
+      <span class="text-4xl animate-bounce">✈️</span>
+      <h1 class="text-3xl font-bold">Flight Price Prediction</h1>
+    </div>
+    <p class="text-center text-gray-300 mb-6">Enter your flight details to get an instant price estimate</p>
+
+    <!-- Form -->
+    <form id="flightForm" 
+      class="grid grid-cols-1 md:grid-cols-2 gap-4" 
+      action="{{ url_for('predict_datapoint') }}" 
+      method="post">
+
+      <!-- Airline -->
+      <div>
+        <label class="block mb-1">Airline</label>
+        <select name = 'airline' class="w-full p-2 rounded-lg text-black">
+          <option>SpiceJet</option>
+          <option>AirAsia</option>
+          <option>Vistara</option>
+          <option>GO_FIRST</option>
+          <option>Indigo</option>
+          <option>Air_India</option>
+        </select>
+      </div>
+
+      <!-- Source City -->
+      <div>
+        <label class="block mb-1">Source City</label>
+        <select name = 'source_city' class="w-full p-2 rounded-lg text-black">
+          <option>Delhi</option>
+          <option>Mumbai</option>
+          <option>Bangalore</option>
+          <option>Kolkata</option>
+          <option>Hyderabad</option>
+          <option>Chennai</option>
+        </select>
+      </div>
+
+      <!-- Departure Time -->
+      <div>
+        <label class="block mb-1">Departure Time</label>
+        <select name = 'departure_time' class="w-full p-2 rounded-lg text-black">
+          <option>Evening</option>
+          <option>Early_Morning</option>
+          <option>Morning</option>
+          <option>Afternoon</option>
+          <option>Night</option>
+          <option>Late_Night</option>
+        </select>
+      </div>
+
+      <!-- Stops -->
+      <div>
+        <label class="block mb-1">Stops</label>
+        <select name = 'stops' class="w-full p-2 rounded-lg text-black">
+          <option>zero</option>
+          <option>one</option>
+          <option>two_or_more</option>
+        </select>
+      </div>
+
+      <!-- Arrival Time -->
+      <div>
+        <label class="block mb-1">Arrival Time</label>
+        <select name = 'arrival_time' class="w-full p-2 rounded-lg text-black">
+          <option>Night</option>
+          <option>Morning</option>
+          <option>Early_Morning</option>
+          <option>Afternoon</option>
+          <option>Evening</option>
+          <option>Late_Night</option>
+        </select>
+      </div>
+
+      <!-- Destination City -->
+      <div>
+        <label class="block mb-1">Destination City</label>
+        <select name = 'destination_city' class="w-full p-2 rounded-lg text-black">
+          <option>Mumbai</option>
+          <option>Bangalore</option>
+          <option>Kolkata</option>
+          <option>Hyderabad</option>
+          <option>Chennai</option>
+          <option>Delhi</option>
+        </select>
+      </div>
+
+      <!-- Flight Class -->
+      <div>
+        <label class="block mb-1">Flight Class</label>
+        <select name="flight_class" class="w-full p-2 rounded-lg text-black">
+          <option>Economy</option>
+          <option>Business</option>
+        </select>
+      </div>
+
+      <!-- Duration -->
+      <div>
+        <label class="block mb-1">Duration (hours)</label>
+        <input name="duration" type="number" placeholder="e.g. 2.5" class="w-full p-2 rounded-lg text-black" />
+      </div>
+
+      <!-- Flight Date -->
+      <div class="md:col-span-2">
+        <label class="block mb-1 flex items-center space-x-2">
+          <span>📅</span><span>Flight Date</span>
+        </label>
+        <input name="days_left" type="date" id="flightDate" class="w-full p-2 rounded-lg text-black" />
+        <p id="daysLeft" class="text-sm text-gray-300 mt-1"></p>
+      </div>
+
+      <!-- Submit button -->
+      <div class="md:col-span-2 flex justify-center mt-4">
+        <button type="submit" class="glow-btn bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-2 rounded-xl font-semibold transition-all hover:scale-105">
+          Predict Price
+        </button>
+      </div>
+    </form>
+
+    <!-- Loading spinner -->
+    <div id="loading" class="hidden text-center mt-4">
+      <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-400 mx-auto"></div>
+      <p class="mt-2">Predicting...</p>
+    </div>
+
+    <!-- Result -->
+    <div id="result" class="hidden text-center mt-4 text-xl font-bold"></div>
+  </div>
+
+  <script>
+    const flightDateInput = document.getElementById("flightDate");
+    const daysLeftText = document.getElementById("daysLeft");
+    const form = document.getElementById("flightForm");
+    const loading = document.getElementById("loading");
+    const result = document.getElementById("result");
+
+    flightDateInput.addEventListener("change", () => {
+      const selectedDate = new Date(flightDateInput.value);
+      const today = new Date();
+      const diffTime = selectedDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      daysLeftText.textContent = diffDays >= 0 ? `Days Left: ${diffDays}` : "Invalid date selected";
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      loading.classList.remove("hidden");
+      result.classList.add("hidden");
+
+      const formData = new FormData(form);
+      const response = await fetch("/predict", {
+        method: "POST",
+        body: formData
+      });
+      const data = await response.json();
+
+      setTimeout(() => {
+        loading.classList.add("hidden");
+        result.textContent = `Estimated Price: ₹${data.predicted_price}`;
+        result.classList.remove("hidden");
+      }, 2000);
+    });
+  </script>
+
+</body>
+</html>

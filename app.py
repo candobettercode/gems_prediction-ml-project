@@ -1,23 +1,4 @@
-from src.logger import logging
-from src.exception import *
-
-#logging.info("Logging has started")
-#logging.debug("This is a debug message.")
-#logging.warning("This is a warning message.")
-#logging.error("This is an error message.")
-#logging.critical("This is a critical message.")
-
-
-#if __name__=='__main__':
-#    try:
-#        a=1/0
-#    except Exception as e:
-#        logging.info("Divide by Zero error")
-#        raise MyException(e,sys)
-    
 from flask import Flask, request, render_template, jsonify
-from datetime import datetime
-
 import numpy as np
 import pandas as pd
 
@@ -28,17 +9,47 @@ from src.logger import logging
 from src.utils import save_object, evaluate_models
 from src.pipeline.predict_pipeline import CustomData, PredictPipeline
 
-
 application = Flask(__name__)
-app = application
 
-# Home route
-@app.route('/')
+app=application
+
+## Route for a home page
+@app.route('/') 
+
 def index():
-    return render_template('home.html')
+    return render_template('index.html')
+
+## Test dummy data
+@app.route('/test')
+def test_prediction():
+    try:
+        # Dummy values (make sure they exist in your encoder training)
+        data = CustomData(
+            airline="Indigo",
+            source_city="Delhi",
+            departure_time="Morning",
+            stops="zero",
+            arrival_time="Evening",
+            destination_city="Mumbai",
+            flight_class="Economy",
+            duration=1,
+            days_left=15
+        )
+
+        pred_df = data.get_data_as_data_frame()
+        print("Dummy Input DF:\n", pred_df)
+
+        predict_pipeline = PredictPipeline()
+        result = predict_pipeline.predict(pred_df)
+
+        return jsonify({"test_predicted_price": float(result[0])})
+    
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 # Predict route (just print data for now)
-@app.route('/predict', methods=['POST'])
+@app.route('/predict', methods=['GET', 'POST'])
+
 def predict_datapoint():
     if request.method=='GET':
         return render_template('home.html')
@@ -85,23 +96,8 @@ def predict_datapoint():
         print(f"predicted_price: {result}")
         logging.info(f"Price predicted: {round(result[0],2)}")
 
-
         # Return a response to frontend
-        #return {"status": "success", "message": "Data printed in terminal!"}
         return jsonify({"predicted_price": round(float(result[0]), 2)})
 
-        ## Print everything in terminal
-        #print("\n===== Form Data Received =====")
-        #print(f"Airline: {airline}")
-        #print(f"Source City: {source_city}")
-        #print(f"Departure Time: {departure_time}")
-        #print(f"Stops: {stops}")
-        #print(f"Arrival Time: {arrival_time}")
-        #print(f"Destination City: {destination_city}")
-        #print(f"Flight Class: {flight_class}")
-        #print(f"Duration: {duration}")
-        #print(f"Days Left (date): {days_left}")
-        #print("================================\n")
-        
-if __name__ == "__main__":
-    app.run(debug=True)
+if __name__=="__main__":
+    app.run(host="0.0.0.0", debug=True)
