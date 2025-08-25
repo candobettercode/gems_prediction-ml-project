@@ -100,4 +100,4 @@ def predict_datapoint():
         return jsonify({"predicted_price": round(float(result[0]), 2)})
 
 if __name__=="__main__":
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0")  #remove debug=True

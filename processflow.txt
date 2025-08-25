@@ -15,8 +15,8 @@ pip install -r requirements.txt
 12. create data_ingetion.py in component of src folder 
 13. create data_transformation.py in component of src folder 
 14. create model_trainer.py in component of src folder 
-15.
-16.
+15. perfrom hyper parameter tuning
+16. 
 
 
 
